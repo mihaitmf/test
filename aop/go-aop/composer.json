@@ -1,0 +1,10 @@
+{
+    "require": {
+        "goaop/framework": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "GoAop\\": "src"
+        }
+    }
+}
