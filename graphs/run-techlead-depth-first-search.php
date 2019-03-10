@@ -21,28 +21,30 @@ function solve($input)
 {
     // find the graph with the biggest size (with the most connected nodes)
 
+    /** @var $nodesMap NodesMap */
     list($nodesMap, $n, $m) = parseInputIntoStructure($input);
-    $graphSizes = new GraphSizes();
-
-    for ($i = 0; $i < $n; $i++) {
-        for ($j = 0; $j < $m; $j++) {
-            traverseGraphDepthFirst($i, $j, $nodesMap->get($i, $j)->getValue(), $nodesMap, $graphSizes);
-        }
-    }
 
     $maxSize = 0;
     $graphIdWithMaxSize = '';
-    foreach ($graphSizes as $graphId => $size) {
-        if ($size > $maxSize) {
-            $maxSize = $size;
-            $graphIdWithMaxSize = $graphId;
+
+    for ($i = 0; $i < $n; $i++) {
+        for ($j = 0; $j < $m; $j++) {
+            $graphSize = 0;
+
+            $nodeValueToSearch = $nodesMap->get($i, $j)->getValue();
+            traverseGraphDepthFirst($i, $j, $nodeValueToSearch, $nodesMap, $graphSize);
+
+            if ($graphSize > $maxSize) {
+                $maxSize = $graphSize;
+                $graphIdWithMaxSize = $nodeValueToSearch;
+            }
         }
     }
 
     return $graphIdWithMaxSize . ' => ' . $maxSize;
 }
 
-function traverseGraphDepthFirst($x, $y, $nodeValueToSearch, NodesMap $nodesMap, ArrayAccess $graphSizes) {
+function traverseGraphDepthFirst($x, $y, $nodeValueToSearch, NodesMap $nodesMap, &$graphSize) {
     try {
         $node = $nodesMap->get($x, $y);
     } catch (Exception $exception) {
@@ -56,17 +58,12 @@ function traverseGraphDepthFirst($x, $y, $nodeValueToSearch, NodesMap $nodesMap,
     }
 
     $node->setVisited();
+    $graphSize++;
 
-    if ($graphSizes->offsetExists($nodeValue)) {
-        $graphSizes->offsetSet($nodeValue, $graphSizes->offsetGet($nodeValue) + 1);
-    } else {
-        $graphSizes->offsetSet($nodeValue, 1);
-    }
-
-    traverseGraphDepthFirst($x, $y + 1, $nodeValueToSearch, $nodesMap, $graphSizes); // go right
-    traverseGraphDepthFirst($x + 1, $y, $nodeValueToSearch, $nodesMap, $graphSizes); // go down
-    traverseGraphDepthFirst($x, $y - 1, $nodeValueToSearch, $nodesMap, $graphSizes); // go left
-    traverseGraphDepthFirst($x - 1, $y, $nodeValueToSearch, $nodesMap, $graphSizes); // go up
+    traverseGraphDepthFirst($x, $y + 1, $nodeValueToSearch, $nodesMap, $graphSize); // go right
+    traverseGraphDepthFirst($x + 1, $y, $nodeValueToSearch, $nodesMap, $graphSize); // go down
+    traverseGraphDepthFirst($x, $y - 1, $nodeValueToSearch, $nodesMap, $graphSize); // go left
+    traverseGraphDepthFirst($x - 1, $y, $nodeValueToSearch, $nodesMap, $graphSize); // go up
 }
 
 /**
@@ -98,8 +95,6 @@ function parseInputIntoStructure($input)
 
     return [$nodesMap, $rowsCount - 1, $columnsCount - 1];
 }
-
-class GraphSizes extends ArrayObject {}
 
 class NodesMap {
     /** @var Node[] */
